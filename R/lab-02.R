@@ -81,3 +81,20 @@ last_14_days
 
 knitr::kable(last_14_days, caption = paste('Safe counties across State'),
              col.names = c('County'))
+
+#QUESTION 2
+##In this question, we are going to look at the story of 4 states and the impact scale can have on data interprtation. 
+#The states include: New York, California, Louisiana, and Florida.
+##Your task is to make a faceted bar plot showing the number of daily, new cases at the state level.
+
+#Step 1: group data to state/county level, then filter it to the 4 states of interest
+
+four_states=covid %>%
+  group_by(state, date)%>%
+  summarise(cases=sum(cases))%>%
+  ungroup()%>%
+  filter(state %in% c("New York", "California", "Louisiana", "Florida")) %>%
+  group_by(state) %>%
+  mutate(newCases=cases-lag(cases))%>%
+  mutate(roll7=zoo::rollmean(newCases,7,fill=NA, align='right'))
+  
