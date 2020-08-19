@@ -14,6 +14,7 @@ library(tidyverse)
 covid_url=("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
 covid= read_csv(covid_url)  #covid= data from nytimes
 
+
 ```
 ```{r}
 #STEP2: subset Covid Data -> filters data to CA Counties
@@ -87,5 +88,37 @@ knitr::kable(last_14_days, caption = paste('Safe counties across State'),
              col.names = c('County'))
 
 ```
+
+This graph shows the number of daily, new cases at the state level for NY, CA, LA, and FL. 
+```{r}
+#QUESTION 2
+##In this question, we are going to look at the story of 4 states and the impact scale can have on data interprtation. 
+#The states include: New York, California, Louisiana, and Florida.
+##Your task is to make a faceted bar plot showing the number of daily, new cases at the state level.
+
+#Step 1: group data to state/county level, then filter it to the 4 states of interest
+
+four_states=covid %>%
+  group_by(state, date)%>%
+  summarise(cases=sum(cases))%>%
+  ungroup()%>%
+  filter(state %in% c("New York", "California", "Louisiana", "Florida")) %>%
+  group_by(state) %>%
+  mutate(newCases=cases-lag(cases))%>%
+  mutate(roll7=zoo::rollmean(newCases,7,fill=NA, align='right'))
+  
+ggplot(data= four_states, aes(x=date))+
+  geom_col(aes(y=newCases), col='red')+
+  geom_line(aes(y=roll7), col='black')+
+  facet_wrap(~state)+
+  labs(title = "Daily New Cases in NY, CA, LA, FL",
+       x="Date",
+       y="New Cases",
+       caption = 'From NY Times COVID Data',
+       theme_bw())
+       
+```
+
+
 
 
