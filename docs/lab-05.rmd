@@ -1,0 +1,175 @@
+---
+title: "Lab-5: Rasters and Remote Sensing"
+author: "Liam Finn"
+date: "9/4/2020"
+output: html_document
+---
+
+```{r}
+library(raster) # Raster Data handling
+library(tidyverse) # Data Manipulation
+library(getlandsat) # keyless Landsat data (2013-2017)
+library(sf) # Vector data processing
+library(mapview) # Rapid Interactive visualization
+library(osmdata)
+library(kableExtra)
+```
+#FIND AOI
+```{r}
+#Question 1 
+
+bb = read_csv("~/github/geog176A-daily-exercises/data/uscities.csv") %>% 
+  filter(city == "Palo") %>% 
+  st_as_sf(coords = c("lng", "lat"), crs = 4326) %>% 
+  st_transform(5070) %>% 
+  st_buffer(5000) %>% 
+  st_bbox() %>% 
+  st_as_sfc() %>% 
+  st_as_sf()
+
+mapview(bb)
+```
+
+#Analysis
+```{r}
+meta = read_csv('/Users/lfinn443/github/geog-176A-labs/data/palo-flood.csv')
+```
+
+```{r}
+files = lsat_scene_files(meta$download_url) %>% 
+  filter(grepl(paste0("B", 1:6, ".TIF$", collapse = "|"), file)) %>% 
+  arrange(file) %>% 
+  pull(file)
+```
+```{r}
+paste0("B",1:6,".TIF", collapse = "|")
+```
+
+```{r}
+st = sapply(files, lsat_image)
+```
+```{r}
+bbwgs = bb %>% 
+  st_transform(4326)
+
+bb = st_bbox(bbwgs)
+```
+
+```{r}
+s = stack(st) %>% 
+  setNames(c(paste0("band", 1:6)))
+```
+```{r}
+cropper = bbwgs %>% 
+  st_transform(crs(s))
+```
+```{r}
+r = crop(s, cropper)
+```
+
+#Plotting
+```{r}
+par(mfrow = c(2,1))
+#NATURAL COLOR (RGB) Lin/Hist Stretches
+plotRGB(r, r = 4, g = 3, b = 2, stretch = "lin")
+plotRGB(r, r = 4, g = 3, b = 2, stretch = "hist")
+
+#COLOR INFRARED (NIR-R-G) with Lin/Hist Stretches
+plotRGB(r, r = 5, g = 5, b = 3, stretch = "lin")
+plotRGB(r, r = 5, g = 5, b = 3, stretch = "hist")
+
+
+#FALSE COLOR WATER FOCUS (NIR-SWIR1-R) with Lin/Hist Stretches
+plotRGB(r, r = 5, g = 6, b = 4, stretch = "lin")
+plotRGB(r, r = 5, g = 6, b = 4, stretch = "hist")
+
+#FALSE COLOR FIRE BURN SCAR FOCUS NIR-G-B with Lin/Hist Stretches
+plotRGB(r, r = 7, g = 5, b = 2, stretch = "lin")
+plotRGB(r, r = 7, g = 5, b = 2, stretch = "hist")
+
+dev.off()
+```
+#Stretching
+Applying a color stretch can improve the contrast in an image, by 'stretching' the range of values that an image allows.
+
+#Question 4 Part 1
+```{r}
+palette = colorRampPalette(c("blue", "white", "red"))
+
+NDVI = (r$band5 - r$band4) / (r$band5 + r$band4)
+plot(NDVI, col = palette(256))
+
+NDWI = (r$band3 - r$band5) / (r$band3 + r$band5)
+plot(NDWI, col = palette(256))
+
+MNDWI = (r$band3 - r$band6) / (r$band3 + r$band6)
+plot(MNDWI, col = palette(256))
+
+WRI = (r$band3 + r$band4) / (r$band5 + r$band6)
+plot(WRI, col = palette(256))
+
+SWI = (1 / sqrt(r$band2 - r$band6))
+plot(SWI, col = palette(256))
+```
+
+#Question 4 Part 2, Raster Thresholding
+
+```{r}
+thresholding1 = function(x){ifelse(x <= 0,1,NA)}
+thresholding2 = function(x){ifelse(x >= 0,1,NA)}
+thresholding3 = function(x){ifelse(x >= 0,1,NA)}
+thresholding4 = function(x){ifelse(x >= 1, 1,NA)}
+thresholding5 = function(x){ifelse(x <= 5,1,NA)}
+```
+#Check functions
+```{r}
+thresholding1(100)
+thresholding2(-100)
+```
+
+```{r}
+flood1 = calc(NDVI, thresholding1)
+plot(flood1, col = "blue")
+
+flood2 = calc(NDWI, thresholding2)
+plot(flood2, col = "blue")
+
+flood3 = calc(MNDWI, thresholding3)
+plot(flood3, col = "blue")
+
+flood4 = calc(WRI, thresholding4)
+plot(flood4, col = "blue")
+
+flood5 = calc(SWI, thresholding5)
+plot(flood5, col = "blue")
+
+floods = raster::stack(flood1, flood2, flood3, flood4, flood5) %>% 
+  setNames(c("NDVI", "NDWI", "MNDWI", "WRI", "SWI"))
+
+plot(floods)
+```
+
+#Question 5
+```{r}
+set.seed(09062020)
+
+r_values = getValues(r) %>% 
+  na.omit()
+
+k12 = kmeans(r_values, 12)
+k6 = kmeans(r_values, 6)
+k4 = kmeans(r_values, 4)
+
+km_raster = floods$NDVI
+km_raster6 = floods$NDVI
+km_raster4 = floods$NDVI
+
+values(km_raster) = k12$cluster
+values(km_raster6) = k6$cluster
+values(km_raster4) = k4$cluster
+
+plot(km_raster)
+plot(km_raster6)
+plot(km_raster4)
+```
+
