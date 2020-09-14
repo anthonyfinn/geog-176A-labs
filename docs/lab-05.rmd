@@ -5,7 +5,7 @@ date: "9/4/2020"
 output: html_document
 ---
 
-```{r}
+```{r, include=FALSE}
 library(raster) # Raster Data handling
 library(tidyverse) # Data Manipulation
 library(getlandsat) # keyless Landsat data (2013-2017)
@@ -15,7 +15,7 @@ library(osmdata)
 library(kableExtra)
 ```
 #FIND AOI
-```{r}
+```{r, warning = FALSE, message = FALSE} 
 #Question 1 
 
 bb = read_csv("~/github/geog176A-daily-exercises/data/uscities.csv") %>% 
@@ -27,11 +27,10 @@ bb = read_csv("~/github/geog176A-daily-exercises/data/uscities.csv") %>%
   st_as_sfc() %>% 
   st_as_sf()
 
-mapview(bb)
 ```
 
 #Analysis
-```{r}
+```{r, warning = FALSE, message = FALSE} 
 meta = read_csv('/Users/lfinn443/github/geog-176A-labs/data/palo-flood.csv')
 ```
 
@@ -45,7 +44,7 @@ files = lsat_scene_files(meta$download_url) %>%
 paste0("B",1:6,".TIF", collapse = "|")
 ```
 
-```{r}
+```{r, warning = FALSE, message = FALSE} 
 st = sapply(files, lsat_image)
 ```
 ```{r}
@@ -68,7 +67,7 @@ r = crop(s, cropper)
 ```
 
 #Plotting
-```{r}
+```{r, warning = FALSE, message = FALSE} 
 par(mfrow = c(2,1))
 #NATURAL COLOR (RGB) Lin/Hist Stretches
 plotRGB(r, r = 4, g = 3, b = 2, stretch = "lin")
@@ -89,11 +88,15 @@ plotRGB(r, r = 7, g = 5, b = 2, stretch = "hist")
 
 dev.off()
 ```
+
+
+```{r}
 #Stretching
-Applying a color stretch can improve the contrast in an image, by 'stretching' the range of values that an image allows.
+"Applying a color stretch can improve the contrast in an image, by 'stretching' the range of values that an image allows."
+```
 
 #Question 4 Part 1
-```{r}
+```{r, warning = FALSE, message = FALSE} 
 palette = colorRampPalette(c("blue", "white", "red"))
 
 NDVI = (r$band5 - r$band4) / (r$band5 + r$band4)
@@ -150,7 +153,7 @@ plot(floods)
 ```
 
 #Question 5
-```{r}
+```{r, warning = FALSE, message = FALSE} 
 set.seed(09062020)
 
 r_values = getValues(r) %>% 
