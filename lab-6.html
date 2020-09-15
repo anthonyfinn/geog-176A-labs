@@ -425,10 +425,10 @@ plot(boundary$geometry, add = T)</code></pre>
 <p>#Creating the hydrologically corrected surface</p>
 <pre class="r"><code>wbt_breach_depressions(&quot;/Users/lfinn443/github/geog-176A-labs/data/basin_elevation.tif&quot;,
                        &quot;/Users/lfinn443/github/geog-176A-labs//data/breach_depression.tif&quot;)</code></pre>
-<pre><code>## [1] &quot;breach_depressions - Elapsed Time (excluding I/O): 0.310s&quot;</code></pre>
+<pre><code>## [1] &quot;breach_depressions - Elapsed Time (excluding I/O): 0.332s&quot;</code></pre>
 <p>#Creating the Hand Raster</p>
 <pre class="r"><code>wbt_elevation_above_stream(&quot;/Users/lfinn443/github/geog-176A-labs/data/breach_depression.tif&quot;, &quot;/Users/lfinn443/github/geog-176A-labs/data/river_raster.tif&quot;, &quot;/Users/lfinn443/github/geog-176A-labs/data/ft_above_str.tif&quot;)</code></pre>
-<pre><code>## [1] &quot;elevation_above_stream - Elapsed Time (excluding I/O): 0.83s&quot;</code></pre>
+<pre><code>## [1] &quot;elevation_above_stream - Elapsed Time (excluding I/O): 0.120s&quot;</code></pre>
 <pre class="r"><code>river_raster = raster(&quot;/Users/lfinn443/github/geog-176A-labs/data/river_raster.tif&quot;)
 hand_raster = raster(&quot;/Users/lfinn443/github/geog-176A-labs/data/ft_above_str.tif&quot;) +3.69
 
